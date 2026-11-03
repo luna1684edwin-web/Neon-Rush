@@ -18,7 +18,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p public
-          cp neon-rush-3d.html public/index.html
+          cp index.html public/index.html
           touch public/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
