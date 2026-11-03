@@ -25,7 +25,7 @@ function model(x,y,z,sx,sy,sz){var m=I();m[0]=sx;m[5]=sy;m[10]=sz;m[12]=x;m[13]=
 function box(V,x,y,z,sx,sy,sz,col){gl.uniformMatrix4fv(um,false,mul(V,model(x,y,z,sx,sy,sz)));gl.uniform4fv(uc,col);gl.drawArrays(gl.TRIANGLES,0,36);}
 function makeWheel(){var v=[],n=32;for(var i=0;i<n;i++){var a=i*2*Math.PI/n,b=(i+1)*2*Math.PI/n,y1=Math.cos(a),z1=Math.sin(a),y2=Math.cos(b),z2=Math.sin(b);v.push(-.5,y1,z1,.5,y1,z1,.5,y2,z2,-.5,y1,z1,.5,y2,z2,-.5,y2,z2, -.5,0,0,-.5,y2,z2,-.5,y1,z1,.5,0,0,.5,y1,z1,.5,y2,z2);}var b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(v),gl.STATIC_DRAW);return {buffer:b,count:v.length/3};}
 var wheelGeo=makeWheel();
-function wheel(V,x,y,z){gl.bindBuffer(gl.ARRAY_BUFFER,wheelGeo.buffer);gl.vertexAttribPointer(a,3,gl.FLOAT,false,0,0);gl.uniformMatrix4fv(um,false,mul(V,model(x,y,z,.34,.82,.82)));gl.uniform4fv(uc,[.012,.018,.03,1]);gl.drawArrays(gl.TRIANGLES,0,wheelGeo.count);box(V,x,y,z+.0,.36,.22,.22,[.1,.9,.9,1]);}
+function wheel(V,x,y,z){gl.bindBuffer(gl.ARRAY_BUFFER,wheelGeo.buffer);gl.vertexAttribPointer(a,3,gl.FLOAT,false,0,0);gl.uniformMatrix4fv(um,false,mul(V,model(x,y,z,.34,.82,.82)));gl.uniform4fv(uc,[.012,.018,.03,1]);gl.drawArrays(gl.TRIANGLES,0,wheelGeo.count);gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.vertexAttribPointer(a,3,gl.FLOAT,false,0,0);box(V,x,y,z,.36,.22,.22,[.1,.9,.9,1]);}
 
 var keys={},carX=0,speed=0,distance=0,started=0,running=false,last=0;
 addEventListener('keydown',function(e){var k=e.key.toLowerCase();if(k.indexOf('arrow')===0||k===' ')e.preventDefault();keys[k]=true;if(k===' '){carX=0;speed=0;}});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
