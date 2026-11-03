@@ -16,6 +16,7 @@ test('WebGL race loads, renders, starts and responds to acceleration', async ({ 
   await page.screenshot({ path: 'test-results/neon-rush-before-start.png' });
   await page.locator('#go').click();
   await expect(page.locator('#cover')).toHaveClass(/hide/);
+  await page.locator('#c').focus();
 
   await page.keyboard.down('ArrowUp');
   await page.waitForTimeout(900);
