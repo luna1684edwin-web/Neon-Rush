@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NEON RUSH 3D</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050914;color:white;font-family:system-ui,Arial}canvas{width:100%;height:100%;display:block}.hud{position:fixed;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;pointer-events:none}.panel{background:#071323d9;border:1px solid #42f5e9;border-radius:12px;padding:10px 14px}.label{font-size:11px;letter-spacing:2px;color:#42f5e9}.value{font-size:25px;font-weight:900}.help{position:fixed;bottom:14px;left:0;right:0;text-align:center;font-size:12px;text-shadow:0 2px 4px black;pointer-events:none}.cover{position:fixed;inset:0;display:grid;place-items:center;background:#050914dd}.card{max-width:460px;margin:20px;padding:30px;text-align:center;background:#0b1b2dee;border:1px solid #42f5e9;border-radius:20px}.card h1{font-size:48px;line-height:1;margin:8px}.card span{color:#42f5e9}.card p{color:#b8cad8;line-height:1.5}button{border:0;border-radius:9px;padding:14px 24px;background:#42f5e9;color:#06121c;font-weight:900;cursor:pointer}.hide{display:none}
+</style></head><body>
+<canvas id="c"></canvas><div class="hud"><div class="panel"><div class="label">NEON RUSH // 3D</div><div class="value" id="timer">00:00.000</div></div><div class="panel" style="text-align:right"><div class="label">VITESSE</div><div class="value"><span id="speed">0</span> km/h</div></div></div>
+<div class="help">↑ ACCÉLÉRER · ↓ FREINER · ← → DIRIGER · ESPACE REPLACER</div>
+<div class="cover" id="cover"><div class="card"><div class="label">ARCADE TIME ATTACK</div><h1>NEON <span>RUSH 3D</span></h1><p>Course 3D jouable directement depuis GitHub Pages. Appuie sur les flèches pour conduire.</p><button id="go">DÉMARRER</button></div></div>
+<script>
+(function(){
+var canvas=document.getElementById('c'),gl=canvas.getContext('webgl',{antialias:true});
+if(!gl){document.querySelector('.card p').textContent='WebGL indisponible dans ce navigateur.';return;}
+var vert='attribute vec3 a; uniform mat4 mvp; void main(){gl_Position=mvp*vec4(a,1.0);}';
+var frag='precision mediump float; uniform vec4 color; void main(){gl_FragColor=color;}';
+function sh(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(s);return s;}
+var pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vert));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,frag));gl.linkProgram(pr);gl.useProgram(pr);
+var a=gl.getAttribLocation(pr,'a'),um=gl.getUniformLocation(pr,'mvp'),uc=gl.getUniformLocation(pr,'color');
+var verts=[-.5,-.5,.5,.5,-.5,.5,.5,.5,.5,-.5,-.5,.5,.5,.5,.5,-.5,.5,.5,.5,-.5,-.5,-.5,-.5,-.5,-.5,.5,-.5,.5,-.5,-.5,-.5,.5,-.5,-.5,.5,-.5,-.5,-.5,.5,.5,-.5,.5,.5,.5,.5,-.5,-.5,.5,.5,.5,.5,-.5,.5,.5,.5,-.5,-.5,-.5,.5,-.5,-.5,-.5,.5,-.5,.5,-.5,.5,.5,-.5,-.5,-.5,.5,.5,-.5,.5,.5,-.5,.5,.5,-.5,.5,-.5,-.5,-.5,-.5,-.5,-.5,.5,-.5,.5,.5,.5,-.5,-.5,-.5,-.5,.5,.5,.5,.5,.5,-.5,.5];
+var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(verts),gl.STATIC_DRAW);gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,3,gl.FLOAT,false,0,0);
+function I(){return [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];}
+function mul(A,B){var O=new Array(16);for(var c=0;c<4;c++)for(var r=0;r<4;r++)O[c*4+r]=A[r]*B[c*4]+A[4+r]*B[c*4+1]+A[8+r]*B[c*4+2]+A[12+r]*B[c*4+3];return O;}
+function persp(f,asp,n,z){var t=1/Math.tan(f/2),m=I();m[0]=t/asp;m[5]=t;m[10]=(z+n)/(n-z);m[11]=-1;m[14]=2*z*n/(n-z);m[15]=0;return m;}
+function look(eye,at){function norm(v){var l=Math.hypot(v[0],v[1],v[2]);return v.map(x=>x/l)}function cross(x,y){return [x[1]*y[2]-x[2]*y[1],x[2]*y[0]-x[0]*y[2],x[0]*y[1]-x[1]*y[0]]}function dot(x,y){return x[0]*y[0]+x[1]*y[1]+x[2]*y[2]}var z=norm([eye[0]-at[0],eye[1]-at[1],eye[2]-at[2]]),x=norm(cross([0,1,0],z)),y=cross(z,x),m=I();m[0]=x[0];m[1]=y[0];m[2]=z[0];m[4]=x[1];m[5]=y[1];m[6]=z[1];m[8]=x[2];m[9]=y[2];m[10]=z[2];m[12]=-dot(x,eye);m[13]=-dot(y,eye);m[14]=-dot(z,eye);return m;}
+function model(x,y,z,sx,sy,sz){var m=I();m[0]=sx;m[5]=sy;m[10]=sz;m[12]=x;m[13]=y;m[14]=z;return m;}
+function box(V,x,y,z,sx,sy,sz,col){gl.uniformMatrix4fv(um,false,mul(V,model(x,y,z,sx,sy,sz)));gl.uniform4fv(uc,col);gl.drawArrays(gl.TRIANGLES,0,36);}
+var keys={},carX=0,speed=0,distance=0,started=0,running=false,last=0;
+addEventListener('keydown',function(e){var k=e.key.toLowerCase();if(k.indexOf('arrow')===0||k===' ')e.preventDefault();keys[k]=true;if(k===' '){carX=0;speed=0;}});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+function resize(){var d=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*d;canvas.height=innerHeight*d;gl.viewport(0,0,canvas.width,canvas.height);}addEventListener('resize',resize);resize();
+document.getElementById('go').onclick=function(){running=true;started=performance.now();last=started;document.getElementById('cover').classList.add('hide');};
+function loop(now){var dt=Math.min((now-last)/1000,.04)||0;last=now;if(running){speed+=(keys.arrowup?45:0)-(keys.arrowdown?80:0)-speed*1.0;speed=Math.max(0,Math.min(90,speed));carX+=((keys.arrowright?1:0)-(keys.arrowleft?1:0))*dt*(2+speed*.09);carX=Math.max(-5.3,Math.min(5.3,carX));distance+=speed*dt;document.getElementById('speed').textContent=Math.round(speed*3.6);var t=(now-started)/1000;document.getElementById('timer').textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')+'.'+String(Math.floor(t%1*1000)).padStart(3,'0');}
+gl.enable(gl.DEPTH_TEST);gl.clearColor(.015,.03,.065,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+var P=persp(Math.PI/3,canvas.width/canvas.height,.1,300),cam=[carX*.25,4.5,-9],V=mul(P,look(cam,[carX*.2,0,12]));
+// Sol et piste qui défilent sous la voiture
+box(V,0,-1.2,75,180,.2,180,[.025,.08,.12,1]);
+for(var i=0;i<36;i++){var z=distance%8+i*8+3;var bend=Math.sin((distance+z)*.012)*2.4;box(V,bend,-.95,z,14,.35,8,[.18,.23,.3,1]);box(V,bend-6.8,-.72,z,.12,.08,8,[.1,.95,.85,1]);box(V,bend+6.8,-.72,z,.12,.08,8,[.1,.95,.85,1]);if(i%3===0){box(V,bend-9,1,z,.35,3,.35,[.1,.8,.8,1]);box(V,bend+9,1,z,.35,3,.35,[.1,.8,.8,1]);box(V,bend,2.6,z,18,.22,.35,[.95,.12,.42,1]);}}
+var x=carX;box(V,x,.15,1,2.15,.65,3.7,[.02,.82,.82,1]);box(V,x,.62,1.25,1.35,.65,1.55,[.03,.1,.2,1]);box(V,x, -.12,-.3,1.9,.15,.25,[.95,.12,.38,1]);for(var side of [-1,1])for(var front of [-1,1])box(V,x+side*.83,-.1,1+front*1.15,.38,.7,.65,[.012,.018,.025,1]);
+requestAnimationFrame(loop);}
+requestAnimationFrame(loop);
+})();
+</script></body></html>
